@@ -18,9 +18,6 @@ const ProfileContextProvider = ({ children }: { children: ReactNode }) => {
       }
    }, [userBalance]);
 
-   // Example usage of setUserBalanceCookie
-   // setUserBalanceCookie(newValue, options);
-
    return (
       <ProfileContext.Provider value={{ balance, setBalance }}>
          {children}

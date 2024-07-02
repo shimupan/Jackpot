@@ -7,6 +7,7 @@ export { default as Plinko } from "./pages/Plinko.tsx"
 
 export { default as Header } from "./components/Header.tsx"
 export { default as Card } from "./components/Card.tsx"
+export { default as PlinkoGame } from './components/Games/Plinko/PlinkoGame.tsx';
 
 // CONTEXT
 

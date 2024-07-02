@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "matter-js": "^0.20.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.24.0",
     "universal-cookie": "^7.1.4"
   },
   "devDependencies": {
+    "@types/matter-js": "^0.19.6",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
