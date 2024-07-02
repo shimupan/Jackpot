@@ -1,11 +1,18 @@
 import { useContext, useState } from 'react';
-import { PlinkoGame, ProfileContext } from '../components';
 import { Engine } from 'matter-js';
+import { PlinkoGame, ProfileContext } from '../components';
 import { addBall } from '../components/Games/Plinko/PlinkoGame';
+import useCookie from '../hooks/useCookies';
 
 const Plinko = () => {
+   const User = useContext(ProfileContext);
+   const [balance, updateBalance] = useCookie('userToken', 1000) as [
+      number,
+      React.Dispatch<React.SetStateAction<number>>
+   ];
+   const [value, setValue] = useState(10);
    // Game setup
-   const engine = Engine.create();
+   const [engine] = useState(() => Engine.create());
    const gameProps = {
       engine: engine,
       width: 800,
@@ -15,10 +22,6 @@ const Plinko = () => {
       pinSpacing: 40,
    };
 
-   const [value, setValue] = useState(10);
-
-   const user = useContext(ProfileContext);
-
    function addBallWrapper(
       engine: Engine,
       width: number,
@@ -26,13 +29,15 @@ const Plinko = () => {
       pinSpacing: number,
       value: number
    ) {
-      // if (user!.balance > value) {
-      //    user!.setBalance(user!.balance - value);
-      //    addBall(engine, width, pinRadius, pinSpacing, value);
-      // } else {
-      //    alert('Insufficient balance');
-      // }
-      addBall(engine, width, pinRadius, pinSpacing, value);
+      if (balance > value) {
+         const newBalance = balance - value;
+         updateBalance(newBalance);
+         User?.setBalance(newBalance);
+         addBall(engine, width, pinRadius, pinSpacing, value);
+         console.log('Ball added, New balance: ', newBalance);
+      } else {
+         alert('Insufficient balance');
+      }
    }
 
    return (
@@ -41,7 +46,7 @@ const Plinko = () => {
          <div className='ml-header-left-offset pt-header-top-offset w-screen h-screen bg-slate-700'>
             {/* GAME CONTAINER */}
             <div className='flex justify-center'>
-               <PlinkoGame gameProps={gameProps} />
+               <PlinkoGame gameProps={gameProps} balance={balance} updateBalance={updateBalance} />
             </div>
             <div className='flex justify-center'>
                <div className='flex max-w-md w-full space-x-3 items-center'>

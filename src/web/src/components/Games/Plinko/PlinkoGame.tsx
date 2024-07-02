@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react';
-
+import { useContext, useEffect, useRef } from 'react';
 import {
    Bodies,
    Body,
@@ -13,25 +12,13 @@ import {
    World,
 } from 'matter-js';
 import { getMultiplier } from './Multipliers';
+import { ProfileContext } from '../../../components';
 
 const collisionCategories = {
    ballCategory: 0x0001,
    pinCategory: 0x0002,
    multiplierCategory: 0x0004,
 };
-
-function playCollisionAnimation(pair: Pair) {
-   const { bodyA, bodyB } = pair;
-
-   // Determine the collision point (for example purposes, using the position of bodyA)
-   const { x, y } = bodyA.position;
-
-   // Trigger an animation at the collision point
-   // This is a placeholder: replace it with your actual animation logic
-   console.log(
-      `Playing animation at (${x}, ${y}) for collision between ${bodyA.label} and ${bodyB.label}`
-   );
-}
 
 export function addBall(
    engine: Engine,
@@ -66,6 +53,8 @@ export function addBall(
 
 const PlinkoGame = ({
    gameProps,
+   balance,
+   updateBalance,
 }: {
    gameProps: {
       engine: Engine;
@@ -74,8 +63,11 @@ const PlinkoGame = ({
       startingPinNumber: number;
       pinRadius: number;
       pinSpacing: number;
-   };
+   },
+   balance: number,
+   updateBalance: React.Dispatch<React.SetStateAction<number>>;
 }) => {
+   const User = useContext(ProfileContext);
    // Define game properties
    const engine = gameProps.engine;
    const width = gameProps.width;
@@ -85,6 +77,11 @@ const PlinkoGame = ({
    const pinSpacing = gameProps.pinSpacing;
    // Game setup
    const gameRef = useRef<HTMLDivElement>(null);
+
+   useEffect(() => {
+      console.log('Updated balance in PlinkoGame:', balance);
+   }, [balance]);
+
    useEffect(() => {
       engine.gravity.y = 0.3;
 
@@ -161,27 +158,6 @@ const PlinkoGame = ({
          World.add(engine.world, pins);
          World.add(engine.world, multiplierBody);
 
-         // Events.on(
-         //    engine,
-         //    'collisionStart',
-         //    (event: IEventCollision<Engine>) => {
-         //       event.pairs.forEach((pair) => {
-         //          const bodyA = pair.bodyA;
-         //          const bodyB = pair.bodyB;
-
-         //          // Check if one body is a ball and the other is a pin
-         //          if (
-         //             (bodyA.label === 'ball' && bodyB.label === 'pin') ||
-         //             (bodyA.label === 'pin' && bodyB.label === 'ball')
-         //          ) {
-         //             console.log('HERE');
-         //             // Trigger animation here
-         //             playCollisionAnimation(pair);
-         //          }
-         //       });
-         //    }
-         // );
-
          return () => {
             World.clear(engine.world, true);
             Engine.clear(engine);
@@ -190,6 +166,30 @@ const PlinkoGame = ({
          };
       }
    }, [gameRef]);
+
+   Events.on(engine, 'collisionStart', (event: IEventCollision<Engine>) => {
+      event.pairs.forEach((pair) => {
+         const bodyA = pair.bodyA;
+         const bodyB = pair.bodyB;
+
+         // Check if one body is a ball and the other is a multiplier
+         if (
+            bodyA.label.startsWith('multiplier') &&
+            bodyB.label.startsWith('ball')
+         ) {
+            World.remove(engine.world, bodyB);
+            const multiplierValue = parseFloat(
+               bodyA.label.split('-')[1]
+            );
+            console.log('Multiplier value:', multiplierValue);
+            const ballValue = parseFloat(bodyB.label.split('-')[1]);
+            const profit = ballValue * multiplierValue;
+            const newBalance = balance + profit;
+            updateBalance(newBalance);
+            User?.setBalance(newBalance);
+         }
+      });
+   });
 
    return (
       <>
