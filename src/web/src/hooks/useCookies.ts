@@ -12,8 +12,8 @@ export default function useCookie<T>(name: string, defaultValue: T) {
    });
 
    const updateCookie = useCallback(
-      (newValue: T, options?: object) => {
-         cookies.set(name, newValue, options);
+      (newValue: T) => {
+         cookies.set(name, newValue, { path: '/' });
          setValue(newValue);
       },
       [name, cookies],

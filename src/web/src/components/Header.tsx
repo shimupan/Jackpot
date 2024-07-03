@@ -9,15 +9,23 @@ const Header = () => {
       number,
       React.Dispatch<React.SetStateAction<number>>
    ];
+   const [tempBalance, setTempBalance] = useState(balance);
 
    const toggleEdit = () => setIsEditable(!isEditable);
 
-   const handleBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let newBalance = Number(e.target.value);
+   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      const newBalance = Number(inputValue);
       if (!isNaN(newBalance)) {
-         newBalance = Math.round(newBalance * 100) / 100; // Correctly round the input value
-         updateBalance(newBalance);
-         User?.setBalance(newBalance);
+         setTempBalance(newBalance);
+      }
+   };
+
+   const handleBalanceSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+         updateBalance(tempBalance);
+         User?.setBalance(tempBalance);
+         window.location.reload();
       }
    };
 
@@ -37,8 +45,13 @@ const Header = () => {
                                  <span className='text-white'>$</span>
                                  <input
                                     type='number'
-                                    value={User?.balance}
-                                    onChange={handleBalanceChange}
+                                    value={
+                                       isEditable
+                                          ? tempBalance.toString()
+                                          : User?.balance.toString()
+                                    }
+                                    onChange={handleInputChange}
+                                    onKeyDownCapture={handleBalanceSubmit}
                                     onBlur={toggleEdit}
                                     autoFocus
                                     onKeyDown={(e) => {

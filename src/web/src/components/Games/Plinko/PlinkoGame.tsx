@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
    Bodies,
    Body,
@@ -13,6 +13,7 @@ import {
 } from 'matter-js';
 import { getMultiplier } from './Multipliers';
 import { ProfileContext } from '../../../components';
+import axios from 'axios';
 
 const collisionCategories = {
    ballCategory: 0x0001,
@@ -25,36 +26,74 @@ export function addBall(
    width: number,
    pinRadius: number,
    pinSpacing: number,
-   value: number
+   value: number,
+   simulate: boolean
 ): void {
-   const centerLine = width / 2;
-   const totalPinsWidth = pinRadius * 3;
-   const maxOffset = (totalPinsWidth + pinSpacing * 2) / 2;
-   const randomOffset = Math.random() * maxOffset * 2 - maxOffset;
-   const ballX = centerLine + randomOffset;
-   const ball = Bodies.circle(ballX, 0, 6, {
-      label: `ball-${value}`,
-      collisionFilter: {
-         category: collisionCategories.ballCategory,
-         // Balls will not collide with each other, but will collide with pins and multipliers
-         mask:
-            collisionCategories.pinCategory |
-            collisionCategories.multiplierCategory,
-      },
-      restitution: 1,
-      friction: 1,
-      render: {
-         fillStyle: '#FF0000',
-      },
-   });
-   World.add(engine.world, ball);
-   console.log('Ball added');
+   // Initial calculations
+   let ballX;
+   if(simulate) {
+      const centerLine = width / 2;
+      const totalPinsWidth = pinRadius * 3;
+      const maxOffset = (totalPinsWidth + pinSpacing * 2) / 2;
+      const randomOffset = Math.random() * maxOffset * 2 - maxOffset;
+      ballX = centerLine + randomOffset;
+
+      console.log('ballX', ballX);
+      const ball = Bodies.circle(ballX, 0, 6, {
+         label: `ball-${value}-${ballX}`,
+         collisionFilter: {
+            category: collisionCategories.ballCategory,
+            // Balls will not collide with each other, but will collide with pins and multipliers
+            mask:
+               collisionCategories.pinCategory |
+               collisionCategories.multiplierCategory,
+         },
+         restitution: 1,
+         friction: 1,
+         render: {
+            fillStyle: '#FF0000',
+         },
+      });
+      World.add(engine.world, ball);
+   } else {
+      //Fetch predetermined calculation
+      axios
+         .get('/drops')
+         .then((response) => {
+            ballX = response.data.ballX;
+            const multiplier = response.data.multiplier;
+            console.log('Got multiplier:', multiplier, 'for ballX:', ballX);
+            console.log('ballX', ballX);
+            const ball = Bodies.circle(ballX, 0, 6, {
+               label: `ball-${value}-${ballX}`,
+               collisionFilter: {
+                  category: collisionCategories.ballCategory,
+                  // Balls will not collide with each other, but will collide with pins and multipliers
+                  mask:
+                     collisionCategories.pinCategory |
+                     collisionCategories.multiplierCategory,
+               },
+               restitution: 1,
+               friction: 1,
+               render: {
+                  fillStyle: '#FF0000',
+               },
+            });
+            World.add(engine.world, ball);
+            return;
+         })
+         .catch((error) => {
+            console.error('Error fetching ballX', error);
+         });
+   }
 }
 
 const PlinkoGame = ({
    gameProps,
    balance,
    updateBalance,
+   multiplierBucket,
+   setMultiplierBucket,
 }: {
    gameProps: {
       engine: Engine;
@@ -63,9 +102,13 @@ const PlinkoGame = ({
       startingPinNumber: number;
       pinRadius: number;
       pinSpacing: number;
-   },
-   balance: number,
+   };
+   balance: number;
    updateBalance: React.Dispatch<React.SetStateAction<number>>;
+   multiplierBucket?: { [key: number]: number[] };
+   setMultiplierBucket?: React.Dispatch<
+      React.SetStateAction<{ [key: number]: number[] }>
+   >;
 }) => {
    const User = useContext(ProfileContext);
    // Define game properties
@@ -77,18 +120,13 @@ const PlinkoGame = ({
    const pinSpacing = gameProps.pinSpacing;
    // Game setup
    const gameRef = useRef<HTMLDivElement>(null);
-
-   useEffect(() => {
-      console.log('Updated balance in PlinkoGame:', balance);
-   }, [balance]);
+   const [multiplierText, setMultiplierText] = useState<Body[]>([]);
 
    useEffect(() => {
       engine.gravity.y = 0.3;
 
       // Render setup
       if (gameRef.current) {
-         console.log('gameRef', gameRef.current);
-
          const render = Render.create({
             element: gameRef.current,
             engine: engine,
@@ -141,7 +179,7 @@ const PlinkoGame = ({
             const pinX = 80 + i * 40; // starting position + i * spacing
             const pinY = 680;
             const pin = Bodies.rectangle(pinX, pinY, 20, 20, {
-               label: `multiplier-${multiplier[i].value}`,
+               label: `multiplier-${multiplier[i].value}-${i}`,
                collisionFilter: {
                   category: collisionCategories.multiplierCategory,
                   // Multipliers will not collide with each other, but will collide with balls
@@ -155,6 +193,8 @@ const PlinkoGame = ({
             multiplierBody.push(pin);
          }
 
+         setMultiplierText(multiplierBody);
+
          World.add(engine.world, pins);
          World.add(engine.world, multiplierBody);
 
@@ -167,34 +207,85 @@ const PlinkoGame = ({
       }
    }, [gameRef]);
 
-   Events.on(engine, 'collisionStart', (event: IEventCollision<Engine>) => {
-      event.pairs.forEach((pair) => {
-         const bodyA = pair.bodyA;
-         const bodyB = pair.bodyB;
+   useEffect(() => {
+      const collisionHandler = (event: IEventCollision<Engine>) => {
+         event.pairs.forEach((pair) => {
+            const bodyA = pair.bodyA;
+            const bodyB = pair.bodyB;
 
-         // Check if one body is a ball and the other is a multiplier
-         if (
-            bodyA.label.startsWith('multiplier') &&
-            bodyB.label.startsWith('ball')
-         ) {
-            World.remove(engine.world, bodyB);
-            const multiplierValue = parseFloat(
-               bodyA.label.split('-')[1]
-            );
-            console.log('Multiplier value:', multiplierValue);
-            const ballValue = parseFloat(bodyB.label.split('-')[1]);
-            const profit = ballValue * multiplierValue;
-            const newBalance = balance + profit;
-            updateBalance(newBalance);
-            User?.setBalance(newBalance);
-         }
-      });
-   });
+            // Check if one body is a ball and the other is a multiplier
+            if (
+               bodyA.label.startsWith('multiplier') &&
+               bodyB.label.startsWith('ball')
+            ) {
+               World.remove(engine.world, bodyB);
+               const multiplierValue = parseFloat(bodyA.label.split('-')[1]);
+               const ballValue = parseFloat(bodyB.label.split('-')[1]);
+               const profit = ballValue * multiplierValue;
+               const newBalance = balance + profit;
+               updateBalance(newBalance);
+               User?.setBalance(newBalance);
+
+               if (multiplierBucket && setMultiplierBucket) {
+                  const multiplierIndex = parseInt(bodyA.label.split('-')[2]);
+                  const ballX = parseFloat(bodyB.label.split('-')[2]);
+
+                  const updatedMultiplierBucket = { ...multiplierBucket };
+                  const lastAddedValue =
+                     updatedMultiplierBucket[multiplierIndex].slice(-1)[0];
+                  if (lastAddedValue === ballX) {
+                     return;
+                  }
+                  updatedMultiplierBucket[multiplierIndex].push(ballX);
+
+                  // Use setMultiplierBucket to update the state
+                  setMultiplierBucket(updatedMultiplierBucket);
+               }
+            }
+         });
+      };
+
+      Events.on(engine, 'collisionStart', collisionHandler);
+
+      // Cleanup function to remove the event listener
+      return () => {
+         Events.off(engine, 'collisionStart', collisionHandler);
+      };
+   }, [engine, balance]);
+
+   // Function to calculate the correct position
+   const calculatePosition = (multiplier: Body) => {
+      const gameBoardRect = gameRef.current!.getBoundingClientRect();
+      // Adjust these values as necessary based on your game's scaling and positioning logic
+      const scaleX = 1; // Assuming no scaling
+      const scaleY = 1; // Assuming no scaling
+
+      const adjustedX = multiplier.position.x * scaleX + gameBoardRect.left;
+      const adjustedY = multiplier.position.y * scaleY + gameBoardRect.top;
+
+      return { x: adjustedX, y: adjustedY };
+   };
 
    return (
       <>
          {/* Plinko Game */}
          <div ref={gameRef} />
+         {multiplierText.map((multiplier) => {
+            return (
+               <div
+                  key={multiplier.label}
+                  style={{
+                     position: 'absolute',
+                     left: multiplier.position.x + 553,
+                     top: multiplier.position.y + 45,
+                     color: 'black',
+                     fontSize: '15px',
+                  }}
+               >
+                  {multiplier.label.split('-')[1]}
+               </div>
+            );
+         })}
       </>
    );
 };
