@@ -120,7 +120,7 @@ const PlinkoGame = ({
    const [multiplierText, setMultiplierText] = useState<Body[]>([]);
 
    useEffect(() => {
-      engine.gravity.y = 0.7; // use 0.3 for production
+      engine.gravity.y = 0.3; // use 0.3 for development 0.7 for production
 
       // Render setup
       if (gameRef.current) {
@@ -250,38 +250,10 @@ const PlinkoGame = ({
       };
    }, [engine, balance]);
 
-   // // Function to calculate the correct position
-   // const calculatePosition = (multiplier: Body) => {
-   //    const gameBoardRect = gameRef.current!.getBoundingClientRect();
-   //    const scaleX = 1; 
-   //    const scaleY = 1;
-
-   //    const adjustedX = multiplier.position.x * scaleX + gameBoardRect.left;
-   //    const adjustedY = multiplier.position.y * scaleY + gameBoardRect.top;
-
-   //    return { x: adjustedX, y: adjustedY };
-   // };
-
    return (
       <>
          {/* Plinko Game */}
          <div ref={gameRef} />
-         {multiplierText.map((multiplier) => {
-            return (
-               <div
-                  key={multiplier.label}
-                  style={{
-                     position: 'absolute',
-                     left: multiplier.position.x + 553,
-                     top: multiplier.position.y + 45,
-                     color: 'black',
-                     fontSize: '15px',
-                  }}
-               >
-                  {multiplier.label.split('-')[1]}
-               </div>
-            );
-         })}
       </>
    );
 };

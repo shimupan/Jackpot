@@ -34,8 +34,8 @@ const Header = () => {
          <div className='absolute'>
             <div className='w-screen absolute flex overflow-hidden'>
                {/* TOP BAR */}
-               <div className='w-full h-14 flex flex-col justify-between'>
-                  <header className='h-16 w-full flex items-center relative justify-end px-5 space-x-10 bg-gray-800'>
+               <div className='min-w-full h-14 flex flex-col justify-between'>
+                  <header className='ml-header-left-offset h-16 w-full flex items-center relative justify-start px-5 space-x-10 bg-gray-800'>
                      <div className='flex flex-shrink-0 items-center space-x-4 text-white'>
                         <div className='flex items-center space-x-2'>
                            {/* TOGGLE BALANCE */}

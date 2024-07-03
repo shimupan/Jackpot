@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Engine } from 'matter-js';
 import { PlinkoGame, ProfileContext } from '../../components';
 import { addBall } from '../../components/Games/Plinko/PlinkoGame';
@@ -9,6 +9,31 @@ function sleep(ms: number) {
 }
 
 const PlinkoSimulation = () => {
+   
+   // Zoom out on mobile
+   useEffect(() => {
+      // Function to adjust the viewport for the special page
+      const adjustViewport = () => {
+         const viewport = document.querySelector('meta[name=viewport]');
+         viewport!.setAttribute(
+            'content',
+            'width=device-width, initial-scale=0.45'
+         );
+      };
+
+      // Function to reset the viewport when leaving the page
+      const resetViewport = () => {
+         const viewport = document.querySelector('meta[name=viewport]');
+         viewport!.setAttribute(
+            'content',
+            'width=device-width, initial-scale=1.0'
+         );
+      };
+
+      adjustViewport();
+      return () => resetViewport();
+   }, []);
+
    const User = useContext(ProfileContext);
    const [balance, updateBalance] = useCookie('userToken', 1000) as [
       number,
