@@ -25,8 +25,10 @@ app.get('/drops', (req, res) => {
    const multiplier = Multiplier16[multiplierIndex];
    let result;
    if(process.env.NODE_ENV === 'production') {
+      console.log('Production')
       result = production[multiplierIndex];
    } else {
+      console.log('Development')
       result = development[multiplierIndex];
    }
    res.send({
