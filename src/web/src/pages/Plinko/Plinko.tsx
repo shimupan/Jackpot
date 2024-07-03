@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { Engine } from 'matter-js';
 import { PlinkoGame, ProfileContext } from '../../components';
 import { addBall } from '../../components/Games/Plinko/PlinkoGame';

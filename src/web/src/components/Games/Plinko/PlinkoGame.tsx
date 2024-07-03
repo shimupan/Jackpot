@@ -2,11 +2,9 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import {
    Bodies,
    Body,
-   Composite,
    Engine,
    Events,
    IEventCollision,
-   Pair,
    Render,
    Runner,
    World,
@@ -38,7 +36,6 @@ export function addBall(
       const randomOffset = Math.random() * maxOffset * 2 - maxOffset;
       ballX = centerLine + randomOffset;
 
-      console.log('ballX', ballX);
       const ball = Bodies.circle(ballX, 0, 6, {
          label: `ball-${value}-${ballX}`,
          collisionFilter: {
@@ -61,9 +58,6 @@ export function addBall(
          .get('/drops')
          .then((response) => {
             ballX = response.data.ballX;
-            const multiplier = response.data.multiplier;
-            console.log('Got multiplier:', multiplier, 'for ballX:', ballX);
-            console.log('ballX', ballX);
             const ball = Bodies.circle(ballX, 0, 6, {
                label: `ball-${value}-${ballX}`,
                collisionFilter: {
@@ -254,17 +248,16 @@ const PlinkoGame = ({
    }, [engine, balance]);
 
    // Function to calculate the correct position
-   const calculatePosition = (multiplier: Body) => {
-      const gameBoardRect = gameRef.current!.getBoundingClientRect();
-      // Adjust these values as necessary based on your game's scaling and positioning logic
-      const scaleX = 1; // Assuming no scaling
-      const scaleY = 1; // Assuming no scaling
+   // const calculatePosition = (multiplier: Body) => {
+   //    const gameBoardRect = gameRef.current!.getBoundingClientRect();
+   //    const scaleX = 1;
+   //    const scaleY = 1;
 
-      const adjustedX = multiplier.position.x * scaleX + gameBoardRect.left;
-      const adjustedY = multiplier.position.y * scaleY + gameBoardRect.top;
+   //    const adjustedX = multiplier.position.x * scaleX + gameBoardRect.left;
+   //    const adjustedY = multiplier.position.y * scaleY + gameBoardRect.top;
 
-      return { x: adjustedX, y: adjustedY };
-   };
+   //    return { x: adjustedX, y: adjustedY };
+   // };
 
    return (
       <>
