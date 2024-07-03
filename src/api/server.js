@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { development } from './outcomes.js';
+import { development, production } from './outcomes.js';
 
 const app = express();
 app.use(cors());
@@ -23,8 +23,12 @@ app.get('/drops', (req, res) => {
       }
    }
    const multiplier = Multiplier16[multiplierIndex];
-   const result = development[multiplierIndex];
-
+   let result;
+   if(process.env.NODE_ENV === 'production') {
+      result = production[multiplierIndex];
+   } else {
+      result = development[multiplierIndex];
+   }
    res.send({
       ballX: result[Math.floor(Math.random() * result.length || 0)],
       multiplier,
