@@ -120,7 +120,7 @@ const PlinkoGame = ({
    const [multiplierText, setMultiplierText] = useState<Body[]>([]);
 
    useEffect(() => {
-      engine.gravity.y = 0.5;
+      engine.gravity.y = 0.6;
 
       // Render setup
       if (gameRef.current) {
