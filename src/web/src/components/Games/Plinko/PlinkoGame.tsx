@@ -58,6 +58,9 @@ export function addBall(
          .get('/drops')
          .then((response) => {
             ballX = response.data.ballX;
+            const multiplier = response.data.multiplier;
+            console.log('Got multiplier:', multiplier, 'for ballX:', ballX);
+            console.log('ballX', ballX);
             const ball = Bodies.circle(ballX, 0, 6, {
                label: `ball-${value}-${ballX}`,
                collisionFilter: {
@@ -247,10 +250,10 @@ const PlinkoGame = ({
       };
    }, [engine, balance]);
 
-   // Function to calculate the correct position
+   // // Function to calculate the correct position
    // const calculatePosition = (multiplier: Body) => {
    //    const gameBoardRect = gameRef.current!.getBoundingClientRect();
-   //    const scaleX = 1;
+   //    const scaleX = 1; 
    //    const scaleY = 1;
 
    //    const adjustedX = multiplier.position.x * scaleX + gameBoardRect.left;
