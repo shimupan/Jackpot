@@ -118,7 +118,7 @@ const PlinkoGame = ({
    // Game setup
    const gameRef = useRef<HTMLDivElement>(null);
    const [multiplierText, setMultiplierText] = useState<Body[]>([]);
-
+   console.log('multiplierText:', multiplierText);
    useEffect(() => {
       engine.gravity.y = 0.3; // use 0.3 for development 0.7 for production
 
