@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { outcomes, outcomes2, outcomes3 } from './outcomes.js';
+import { development } from './outcomes.js';
 
 const app = express();
 app.use(cors());
@@ -23,7 +23,7 @@ app.get('/drops', (req, res) => {
       }
    }
    const multiplier = Multiplier16[multiplierIndex];
-   const result = outcomes3[multiplierIndex];
+   const result = development[multiplierIndex];
 
    res.send({
       ballX: result[Math.floor(Math.random() * result.length || 0)],

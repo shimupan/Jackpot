@@ -61,7 +61,7 @@ const PlinkoSimulation = () => {
             User?.setBalance(newBalance);
             addBall(engine, width, pinRadius, pinSpacing, value, true);
 
-            await sleep(1000);
+            await sleep(500);
          }
       } else {
          alert('Insufficient balance');
