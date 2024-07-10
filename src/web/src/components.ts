@@ -9,6 +9,7 @@ export { default as PlinkoSimulation } from './pages/Plinko/PlinkoSimulation.tsx
 export { default as Header } from './components/Header.tsx';
 export { default as Card } from './components/Card.tsx';
 export { default as PlinkoGame } from './components/Games/Plinko/PlinkoGame.tsx';
+export { default as MultiplierBox } from './components/Games/Plinko/MultiplierBox.tsx';
 
 // CONTEXT
 

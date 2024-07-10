@@ -10,7 +10,7 @@ import {
    World,
 } from 'matter-js';
 import { getMultiplier } from './Multipliers';
-import { ProfileContext } from '../../../components';
+import { MultiplierBox, ProfileContext } from '../../../components';
 import axios from 'axios';
 
 const collisionCategories = {
@@ -29,7 +29,7 @@ export function addBall(
 ): void {
    // Initial calculations
    let ballX;
-   if(simulate) {
+   if (simulate) {
       const centerLine = width / 2;
       const totalPinsWidth = pinRadius * 3;
       const maxOffset = (totalPinsWidth + pinSpacing * 2) / 2;
@@ -254,6 +254,16 @@ const PlinkoGame = ({
       <>
          {/* Plinko Game */}
          <div ref={gameRef} />
+         {/* Multiplier Boxes */}
+         {multiplierText.map((multiplier) => {
+            return (
+               <MultiplierBox
+                  x={multiplier.position.x}
+                  y={multiplier.position.y}
+                  text={multiplier.label}
+               />
+            );
+         })}
       </>
    );
 };
