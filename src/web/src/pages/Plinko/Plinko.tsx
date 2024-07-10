@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Engine } from 'matter-js';
 import { PlinkoGame, ProfileContext } from '../../components';
-import { addBall } from '../../components/Games/Plinko/PlinkoGame';
+import { addBall } from '../../components/Games/Plinko/addBall';
 import useCookie from '../../hooks/useCookies';
 import { Link } from 'react-router-dom';
 

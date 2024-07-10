@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Engine } from 'matter-js';
 import { PlinkoGame, ProfileContext } from '../../components';
-import { addBall } from '../../components/Games/Plinko/PlinkoGame';
+import { addBall } from '../../components/Games/Plinko/addBall';
 import useCookie from '../../hooks/useCookies';
 
 function sleep(ms: number) {
@@ -41,7 +41,7 @@ const PlinkoSimulation = () => {
    ];
    const [value, setValue] = useState(10);
    const [startSimulation, setStartSimulation] = useState(false);
-   let [outputs, setOutputs] = useState<{ [key: number]: number[] }>({
+   const [outputs, setOutputs] = useState<{ [key: number]: number[] }>({
       0: [],
       1: [],
       2: [],
