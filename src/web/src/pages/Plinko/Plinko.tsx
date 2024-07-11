@@ -1,11 +1,13 @@
 import { useContext, useEffect, useState } from 'react';
-import { Engine } from 'matter-js';
-import { PlinkoGame, ProfileContext } from '../../components';
-import { addBall } from '../../components/Games/Plinko/addBall';
-import useCookie from '../../hooks/useCookies';
 import { Link } from 'react-router-dom';
+import { Engine } from 'matter-js';
+import { PlinkoGame, ProfileContext, MultiplierHistory, ToggleSlider } from '../../components';
+import { addBall } from '../../components/Games/Plinko/addBall';
+import { Multiplier } from '../../components/Games/Plinko/type';
+import useCookie from '../../hooks/useCookies';
 
 const Plinko = () => {
+
    // Zoom out on mobile
    useEffect(() => {
       // Function to adjust the viewport for the special page
@@ -36,6 +38,8 @@ const Plinko = () => {
       React.Dispatch<React.SetStateAction<number>>
    ];
    const [value, setValue] = useState(10);
+   const [history, setHistory] = useState<Multiplier[]>([]);
+   const [preview, setPreview] = useState<boolean>(false);
 
    // Game setup
    const [engine] = useState(() => Engine.create());
@@ -59,34 +63,31 @@ const Plinko = () => {
          const newBalance = balance - value;
          updateBalance(newBalance);
          User?.setBalance(newBalance);
-         addBall(engine, width, pinRadius, pinSpacing, value, false);
+         addBall(engine, width, pinRadius, pinSpacing, value, false, preview, setHistory);
       } else {
          alert('Insufficient balance');
       }
    }
 
-   // useEffect(() => {
-   //    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-   //       e.preventDefault();
-   //    };
-
-   //    window.addEventListener('beforeunload', handleBeforeUnload);
-
-   //    return () => {
-   //       window.removeEventListener('beforeunload', handleBeforeUnload);
-   //    };
-   // }, []);
-
    return (
       <>
          {/* CONTAINER */}
-         <div className='ml-header-left-offset pt-header-top-offset w-screen h-screen bg-slate-700'>
+         <div className='ml-header-left-offset pt-header-top-offset w-screen min-h-screen bg-slate-700'>
+            {/* GAME HISTORY */ }
+            <div className='flex flex-col md:justify-center items-center'>
+               <p className='text-white font-bold text-lg'>Multiplier History</p>
+               <div className='relative h-3'>
+                  <MultiplierHistory history={history} />
+               </div>
+            </div>
             {/* GAME CONTAINER */}
             <div className='flex md:justify-center'>
                <PlinkoGame
                   gameProps={gameProps}
                   balance={balance}
                   updateBalance={updateBalance}
+                  setHistory={setHistory}
+                  preview={preview}
                />
             </div>
             <div className='flex justify-center'>
@@ -134,6 +135,10 @@ const Plinko = () => {
                   >
                      Add Ball
                   </button>
+                  <div className='flex flex-col justify-center my-4'>
+                     <p className='text-white'>Preview</p>
+                     <ToggleSlider preview={preview} setPreview={setPreview} />
+                  </div>
                </div>
             </div>
             <Link to='/plinko/simulate' className='flex justify-center mt-10'>

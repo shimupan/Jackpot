@@ -4,6 +4,8 @@ import {
    World,
 } from 'matter-js';
 import axios from 'axios';
+import { Multiplier } from './type';
+import { getMultiplierColorFromValue } from './Multipliers';
 
 export const collisionCategories = {
    ballCategory: 0x0001,
@@ -17,7 +19,9 @@ export function addBall(
     pinRadius: number,
     pinSpacing: number,
     value: number,
-    simulate: boolean
+    simulate: boolean,
+    preview: boolean,
+    setHistory: React.Dispatch<React.SetStateAction<Multiplier[]>>,
  ): void {
     // Initial calculations
     let ballX;
@@ -29,7 +33,7 @@ export function addBall(
        ballX = centerLine + randomOffset;
  
        const ball = Bodies.circle(ballX, 0, 6, {
-          label: `ball-${value}-${ballX}`,
+          label: `ball-${value}-${ballX}-${Date.now()}`,
           collisionFilter: {
              category: collisionCategories.ballCategory,
              // Balls will not collide with each other, but will collide with pins and multipliers
@@ -50,11 +54,10 @@ export function addBall(
           .get('/drops')
           .then((response) => {
              ballX = response.data.ballX;
-             const multiplier = response.data.multiplier;
-             console.log('Got multiplier:', multiplier, 'for ballX:', ballX);
-             console.log('ballX', ballX);
+             const multiplier: number = response.data.multiplier;
+             const ballTimeStamp = Date.now();
              const ball = Bodies.circle(ballX, 0, 6, {
-                label: `ball-${value}-${ballX}`,
+                label: `ball-${value}-${ballX}-${ballTimeStamp}`,
                 collisionFilter: {
                    category: collisionCategories.ballCategory,
                    // Balls will not collide with each other, but will collide with pins and multipliers
@@ -68,6 +71,24 @@ export function addBall(
                    fillStyle: '#FF0000',
                 },
              });
+             // Display predetermined calculations if prompted
+             if(preview) {
+               const mul: Multiplier = { value: multiplier, color: getMultiplierColorFromValue(multiplier), timestamp: ballTimeStamp};
+               setHistory((prevHistory) => {
+                  const lastMultiplier = prevHistory[0];
+                  let newHistory = prevHistory;
+                  if (lastMultiplier && lastMultiplier.value === mul.value && lastMultiplier.color === mul.color && lastMultiplier.timestamp === mul.timestamp) {
+                     return prevHistory;
+                  } else {
+                     newHistory = [mul, ...prevHistory];
+                  }
+                  if(newHistory.length > 5) {
+                     newHistory.pop();
+                  }
+                  return newHistory;
+               });
+             }
+
              World.add(engine.world, ball);
              return;
           })

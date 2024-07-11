@@ -40,3 +40,28 @@ export function getMultiplier(index: number): Multiplier[] {
          return [];
    }
 }
+
+export function getMultiplierColorFromValue(value: number) {
+   switch (value) {
+      case 110:
+         return MultiplierColor.BrightRed;
+      case 41:
+         return MultiplierColor.OrangeRed;
+      case 10:
+         return MultiplierColor.DarkOrange;
+      case 5:
+         return MultiplierColor.Orange;
+      case 3:
+         return MultiplierColor.LightOrange;
+      case 1.5:
+         return MultiplierColor.LighterOrange;
+      case 1:
+         return MultiplierColor.VeryLightOrange;
+      case 0.5:
+         return MultiplierColor.Gold;
+      case 0.3:
+         return MultiplierColor.Yellow;
+      default:
+         return MultiplierColor.Gold;
+   }
+}

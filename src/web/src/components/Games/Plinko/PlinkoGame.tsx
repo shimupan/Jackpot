@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import {
    Bodies,
    Body,
@@ -10,13 +10,28 @@ import {
    World,
 } from 'matter-js';
 import { getMultiplier } from './Multipliers';
-import { MultiplierBox, ProfileContext } from '../../../components';
+import { ProfileContext } from '../../../components';
 import { collisionCategories } from './addBall';
+import { Multiplier } from './type';
+
+const drawTextOnCanvas = (render: Matter.Render, text: string, position: {x : number, y : number}) => {
+   const ctx = render.context;
+   ctx.save();
+   ctx.beginPath();
+   ctx.font = 'bold 12px "Impact", sans-serif';
+   ctx.fillStyle = '#000';
+   ctx.textAlign = 'center';
+   ctx.fillText(text, position.x, position.y+5);
+   ctx.closePath();
+   ctx.restore();
+ };
 
 const PlinkoGame = ({
    gameProps,
    balance,
    updateBalance,
+   setHistory,
+   preview,
    multiplierBucket,
    setMultiplierBucket,
 }: {
@@ -30,6 +45,8 @@ const PlinkoGame = ({
    };
    balance: number;
    updateBalance: React.Dispatch<React.SetStateAction<number>>;
+   setHistory: React.Dispatch<React.SetStateAction<Multiplier[]>>;
+   preview: boolean;
    multiplierBucket?: { [key: number]: number[] };
    setMultiplierBucket?: React.Dispatch<
       React.SetStateAction<{ [key: number]: number[] }>
@@ -45,11 +62,9 @@ const PlinkoGame = ({
    const pinSpacing = gameProps.pinSpacing;
    // Game setup
    const gameRef = useRef<HTMLDivElement>(null);
-   const [multiplierText, setMultiplierText] = useState<Body[]>([]);
-   console.log('multiplierText:', multiplierText);
    useEffect(() => {
       engine.gravity.y = import.meta.env.VITE_GRAVITY_VALUE; // use 0.3 for development 0.7 for production
-
+      
       // Render setup
       if (gameRef.current) {
          const render = Render.create({
@@ -103,8 +118,8 @@ const PlinkoGame = ({
          for (let i = 0; i < multiplier.length; i++) {
             const pinX = 80 + i * 40; // starting position + i * spacing
             const pinY = 680;
-            const pin = Bodies.rectangle(pinX, pinY, 20, 20, {
-               label: `multiplier-${multiplier[i].value}-${i}`,
+            const pin = Bodies.rectangle(pinX, pinY, 25, 25, {
+               label: `multiplier-${multiplier[i].value}-${i}-${multiplier[i].color}`,
                collisionFilter: {
                   category: collisionCategories.multiplierCategory,
                   // Multipliers will not collide with each other, but will collide with balls
@@ -113,15 +128,21 @@ const PlinkoGame = ({
                render: {
                   fillStyle: multiplier[i].color,
                },
+               chamfer: { radius: 3 },
                isStatic: true,
             });
             multiplierBody.push(pin);
          }
 
-         setMultiplierText(multiplierBody);
-
          World.add(engine.world, pins);
          World.add(engine.world, multiplierBody);
+
+         Events.on(render, 'afterRender', () => {
+            multiplier.forEach((multiplier, index) => {
+              const position = { x: 80 + index * 40, y: 680 };
+              drawTextOnCanvas(render, `x${multiplier.value}`, position);
+            });
+          });
 
          return () => {
             World.clear(engine.world, true);
@@ -145,12 +166,36 @@ const PlinkoGame = ({
             ) {
                World.remove(engine.world, bodyB);
                const multiplierValue = parseFloat(bodyA.label.split('-')[1]);
+               const multiplierColor = bodyA.label.split('-')[3];
                const ballValue = parseFloat(bodyB.label.split('-')[1]);
+               const ballTimeStamp = parseFloat(bodyB.label.split('-')[3]);
                const profit = ballValue * multiplierValue;
                const newBalance = balance + profit;
                updateBalance(newBalance);
                User?.setBalance(newBalance);
 
+               // If preview is true, we already added the multiplier to the history
+               if(!preview) {
+                  // Add the multiplier to the history
+                  const multiplier: Multiplier = { value: multiplierValue, color: multiplierColor, timestamp: ballTimeStamp };
+                  setHistory((prevHistory) => {
+                     const lastMultiplier = prevHistory[0];
+                     console.log("lastMultiplier ",lastMultiplier);
+                     console.log("multiplier ",multiplier);
+                     let newHistory = prevHistory;
+                     if (lastMultiplier && lastMultiplier.value === multiplier.value && lastMultiplier.color === multiplier.color && lastMultiplier.timestamp === multiplier.timestamp) {
+                        return prevHistory;
+                     } else {
+                        newHistory = [multiplier, ...prevHistory];
+                     }
+                     if(newHistory.length > 5) {
+                        newHistory.pop();
+                     }
+                     return newHistory;
+                  });
+               }
+
+               // used in PlinkoSimulation.tsx to track ballX and the multiplier
                if (multiplierBucket && setMultiplierBucket) {
                   const multiplierIndex = parseInt(bodyA.label.split('-')[2]);
                   const ballX = parseFloat(bodyB.label.split('-')[2]);
@@ -182,16 +227,6 @@ const PlinkoGame = ({
       <>
          {/* Plinko Game */}
          <div ref={gameRef} />
-         {/* Multiplier Boxes */}
-         {multiplierText.map((multiplier) => {
-            return (
-               <MultiplierBox
-                  x={multiplier.position.x}
-                  y={multiplier.position.y}
-                  text={multiplier.label}
-               />
-            );
-         })}
       </>
    );
 };

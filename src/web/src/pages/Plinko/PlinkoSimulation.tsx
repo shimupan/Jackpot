@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
 import { Engine } from 'matter-js';
-import { PlinkoGame, ProfileContext } from '../../components';
+import { MultiplierHistory, PlinkoGame, ProfileContext } from '../../components';
 import { addBall } from '../../components/Games/Plinko/addBall';
 import useCookie from '../../hooks/useCookies';
+import { Multiplier } from '../../components/Games/Plinko/type';
 
 function sleep(ms: number) {
    return new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,6 +62,11 @@ const PlinkoSimulation = () => {
       16: [],
       17: [],
    });
+   const [history, setHistory] = useState<Multiplier[]>([]);
+   const [preview, setPreview] = useState<boolean>(false);
+   useEffect(() => {
+      setPreview(false);
+   }, []);
    // Game setup
    const [engine] = useState(() => Engine.create());
    const gameProps = {
@@ -84,7 +90,7 @@ const PlinkoSimulation = () => {
             const newBalance = balance - value;
             updateBalance(newBalance);
             User?.setBalance(newBalance);
-            addBall(engine, width, pinRadius, pinSpacing, value, true);
+            addBall(engine, width, pinRadius, pinSpacing, value, true, preview, setHistory);
 
             await sleep(500);
          }
@@ -97,12 +103,19 @@ const PlinkoSimulation = () => {
       <>
          {/* CONTAINER */}
          <div className='ml-header-left-offset pt-header-top-offset w-screen min-h-screen bg-slate-700'>
+            {/* GAME HISTORY */ }
+            <div className='flex md:justify-center'>
+               <p className='text-white font-bold text-lg'>Multiplier History</p>
+               <MultiplierHistory history={history} />
+            </div>
             {/* GAME CONTAINER */}
             <div className='flex justify-center'>
                <PlinkoGame
                   gameProps={gameProps}
                   balance={balance}
                   updateBalance={updateBalance}
+                  setHistory={setHistory}
+                  preview={preview}
                   multiplierBucket={outputs}
                   setMultiplierBucket={setOutputs}
                />
