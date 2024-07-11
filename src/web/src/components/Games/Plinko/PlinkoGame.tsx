@@ -31,7 +31,6 @@ const PlinkoGame = ({
    balance,
    updateBalance,
    setHistory,
-   preview,
    multiplierBucket,
    setMultiplierBucket,
 }: {
@@ -169,19 +168,18 @@ const PlinkoGame = ({
                const multiplierColor = bodyA.label.split('-')[3];
                const ballValue = parseFloat(bodyB.label.split('-')[1]);
                const ballTimeStamp = parseFloat(bodyB.label.split('-')[3]);
+               const ballPreviewMode = parseInt(bodyB.label.split('-')[4]) === 1;
                const profit = ballValue * multiplierValue;
                const newBalance = balance + profit;
                updateBalance(newBalance);
                User?.setBalance(newBalance);
 
-               // If preview is true, we already added the multiplier to the history
-               if(!preview) {
+               // The ball already got added earlier in the simulation
+               if(!ballPreviewMode) {
                   // Add the multiplier to the history
                   const multiplier: Multiplier = { value: multiplierValue, color: multiplierColor, timestamp: ballTimeStamp };
                   setHistory((prevHistory) => {
                      const lastMultiplier = prevHistory[0];
-                     console.log("lastMultiplier ",lastMultiplier);
-                     console.log("multiplier ",multiplier);
                      let newHistory = prevHistory;
                      if (lastMultiplier && lastMultiplier.value === multiplier.value && lastMultiplier.color === multiplier.color && lastMultiplier.timestamp === multiplier.timestamp) {
                         return prevHistory;

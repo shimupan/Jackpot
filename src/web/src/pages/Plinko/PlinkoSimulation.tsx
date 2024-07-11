@@ -104,9 +104,11 @@ const PlinkoSimulation = () => {
          {/* CONTAINER */}
          <div className='ml-header-left-offset pt-header-top-offset w-screen min-h-screen bg-slate-700'>
             {/* GAME HISTORY */ }
-            <div className='flex md:justify-center'>
+            <div className='flex flex-col md:justify-center items-center'>
                <p className='text-white font-bold text-lg'>Multiplier History</p>
-               <MultiplierHistory history={history} />
+               <div className='relative h-3'>
+                  <MultiplierHistory history={history} />
+               </div>
             </div>
             {/* GAME CONTAINER */}
             <div className='flex justify-center'>

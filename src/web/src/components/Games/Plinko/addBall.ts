@@ -56,8 +56,9 @@ export function addBall(
              ballX = response.data.ballX;
              const multiplier: number = response.data.multiplier;
              const ballTimeStamp = Date.now();
+             const ballLabel = `ball-${value}-${ballX}-${ballTimeStamp}-${preview ? '1' : '0'}`;
              const ball = Bodies.circle(ballX, 0, 6, {
-                label: `ball-${value}-${ballX}-${ballTimeStamp}`,
+                label: ballLabel,
                 collisionFilter: {
                    category: collisionCategories.ballCategory,
                    // Balls will not collide with each other, but will collide with pins and multipliers

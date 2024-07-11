@@ -2,7 +2,7 @@ import { Multiplier } from "./type";
 
 const MultiplierHistory = ({ history }: { history: Multiplier[] }) => {
   return (
-    <div className="flex flex-row gap-0.5 animate-slideInFromRight">
+    <div className="flex flex-row gap-0.5">
       {history.map((item, index) => (
         <div
           key={index}

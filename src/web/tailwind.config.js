@@ -10,9 +10,6 @@ export default {
         'header-left-offset': '4rem',
         'header-top-offset': '3.5rem'
       },
-      animation: {
-        'slidedInFromRight': 'slidedInFromRight 0.5s ease-in-out forwards',
-      },
     },
   },
   plugins: [],
